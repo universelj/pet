@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIPet设置</title>
+  </head>
+  <body>
+    <main id="settings">
+      <header>
+        <div>
+          <p>AIPet 桌面宠物</p>
+          <h1>AIPet 设置</h1>
+        </div>
+      </header>
+      <nav aria-label="设置分类">
+        <button class="tab" data-tab="pets" type="button">宠物</button>
+        <button class="tab" data-tab="chat" type="button">AI</button>
+      </nav>
+      <section class="panel" id="pets-panel">
+        <div class="panel-head">
+          <h2>宠物</h2>
+          <button id="import-folder" type="button">加载文件夹</button>
+          <input id="folder-input" type="file" multiple hidden />
+        </div>
+        <section id="pet-list" aria-label="宠物列表"></section>
+      </section>
+      <section class="panel" id="chat-panel" hidden>
+        <div class="ai-layout">
+          <form id="deepseek-form">
+            <label>
+              <span>API Key</span>
+              <input id="api-key" type="password" autocomplete="off" placeholder="sk-..." />
+            </label>
+            <label class="check">
+              <input id="remember-key" type="checkbox" />
+              <span>记住到本机</span>
+            </label>
+            <label>
+              <span>模型</span>
+              <input id="model" type="text" value="deepseek-v4-flash" />
+            </label>
+            <label>
+              <span>接口地址</span>
+              <input id="base-url" type="url" value="https://api.deepseek.com" />
+            </label>
+            <label>
+              <span>宠物角色</span>
+              <textarea id="persona" rows="5">你是一个温暖、活泼的桌面宠物伙伴。用用户的语言回复，回答要简短、可爱、有帮助。</textarea>
+            </label>
+          </form>
+          <section class="ai-note">
+            <h2>对话方式</h2>
+            <p>点击桌面上的宠物，会在宠物旁边弹出输入框。你输入内容后，宠物会用气泡回复。</p>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/settings.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIPet</title>
+  </head>
+  <body>
+    <main id="app" aria-label="桌面宠物">
+      <section id="chat-area" aria-live="polite" hidden>
+        <div id="bubble-list"></div>
+        <div id="chat-input-area">
+          <form id="pet-chat-form" aria-label="和宠物对话">
+            <input id="pet-chat-input" type="text" autocomplete="off" placeholder="说点什么..." />
+            <button id="pet-chat-send" type="submit" aria-label="发送">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8L15 1L8 15L6 9L1 8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            </button>
+          </form>
+          <button id="close-chat" type="button" aria-label="关闭">×</button>
+        </div>
+      </section>
+      <canvas id="pet" aria-label="桌面宠物"></canvas>
+    </main>
+    <script type="module" src="/src/pet.ts"></script>
+  </body>
+</html>
