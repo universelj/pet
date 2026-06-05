@@ -27,6 +27,31 @@ desktop.ini
 hatch-runs/
 qa-screen.png
 
+# Private pet assets and one-off character generation work
+# These can contain user photos, generated portraits, local absolute paths, or personal sprites.
+local-pets/
+boy-pet/
+source-images/
+input-images/
+private-assets/
+references/private/
+generated_images/
+generated-images/
+tmp/
+scripts/create_*pet*.py
+scripts/*xiaoman*.py
+scripts/*dundun*.py
+
+# Secrets and signing material
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.csr
+src-tauri/private.key
+src-tauri/*.key
+
 # Tauri specific ignores
 src-tauri/gen/
 src-tauri/bin/

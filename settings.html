@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AIPet设置</title>
+    <title>AIPet 设置</title>
   </head>
   <body>
     <main id="settings">
@@ -16,7 +16,9 @@
       <nav aria-label="设置分类">
         <button class="tab" data-tab="pets" type="button">宠物</button>
         <button class="tab" data-tab="chat" type="button">AI</button>
+        <button class="tab" data-tab="motion" type="button">动作</button>
       </nav>
+
       <section class="panel" id="pets-panel">
         <div class="panel-head">
           <h2>宠物</h2>
@@ -25,9 +27,17 @@
         </div>
         <section id="pet-list" aria-label="宠物列表"></section>
       </section>
+
       <section class="panel" id="chat-panel" hidden>
         <div class="ai-layout">
           <form id="deepseek-form">
+            <label class="switch-row">
+              <span>
+                <strong>启用 AI 对话</strong>
+                <small>关闭后点击宠物只播放动作，不弹出输入框。</small>
+              </span>
+              <input id="ai-chat-enabled" type="checkbox" />
+            </label>
             <label>
               <span>API Key</span>
               <input id="api-key" type="password" autocomplete="off" placeholder="sk-..." />
@@ -51,7 +61,80 @@
           </form>
           <section class="ai-note">
             <h2>对话方式</h2>
-            <p>点击桌面上的宠物，会在宠物旁边弹出输入框。你输入内容后，宠物会用气泡回复。</p>
+            <p>开启后点击桌面宠物，会在宠物旁边弹出输入框；关闭后点击只触发动作。</p>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="motion-panel" hidden>
+        <div class="motion-layout">
+          <section class="motion-card">
+            <div class="motion-card-head">
+              <h2>全局速度</h2>
+              <button id="reset-motion" type="button">恢复默认</button>
+            </div>
+            <div class="motion-grid">
+              <label>
+                <span>基础帧间隔 ms</span>
+                <input id="frame-interval" type="number" min="40" max="500" step="10" />
+              </label>
+              <label>
+                <span>点击宠物动作</span>
+                <select id="click-action">
+                  <option value="idle">待机</option>
+                  <option value="running-right">向右移动</option>
+                  <option value="running-left">向左移动</option>
+                  <option value="waving">打招呼</option>
+                  <option value="jumping">跳跃</option>
+                  <option value="failed">哭泣/失败</option>
+                  <option value="waiting">歪头/等待</option>
+                  <option value="running">处理中</option>
+                  <option value="review">认真回复</option>
+                  <option value="random">随机</option>
+                </select>
+              </label>
+              <label>
+                <span>点击动作循环</span>
+                <input id="click-pose-loops" type="number" min="1" max="20" step="1" />
+              </label>
+              <label>
+                <span>AI 回复动作循环</span>
+                <input id="response-action-loops" type="number" min="1" max="20" step="1" />
+              </label>
+              <label>
+                <span>最短播放 ms</span>
+                <input id="min-action-ms" type="number" min="0" max="10000" step="100" />
+              </label>
+              <label>
+                <span>拖动触发延迟 ms</span>
+                <input id="drag-start-delay" type="number" min="0" max="1000" step="10" />
+              </label>
+              <label>
+                <span>拖动结束缓冲 ms</span>
+                <input id="drag-release-delay" type="number" min="0" max="1000" step="10" />
+              </label>
+            </div>
+            <label class="switch-row compact">
+              <span>
+                <strong>播放 idle 动画</strong>
+                <small>关闭时待机保持第一帧，减少打扰。</small>
+              </span>
+              <input id="idle-plays" type="checkbox" />
+            </label>
+          </section>
+
+          <section class="motion-card">
+            <div class="motion-card-head">
+              <h2>每个动作</h2>
+            </div>
+            <div class="motion-table-head">
+              <span>动作</span>
+              <span>播放帧数</span>
+              <span>速度倍率</span>
+              <span>循环次数</span>
+              <span>触发</span>
+            </div>
+            <div id="motion-state-list"></div>
           </section>
         </div>
       </section>

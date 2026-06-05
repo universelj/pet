@@ -12,6 +12,34 @@ export type PetState =
   | "running"
   | "review";
 
+export type ClickAction = PetState | "random";
+
+export const PET_STATE_ORDER: readonly PetState[] = [
+  "idle",
+  "running-right",
+  "running-left",
+  "waving",
+  "jumping",
+  "failed",
+  "waiting",
+  "running",
+  "review"
+];
+
+export const CLICK_ACTION_STATES: readonly PetState[] = PET_STATE_ORDER;
+
+export const PET_STATE_LABELS: Record<PetState, string> = {
+  idle: "待机",
+  "running-right": "向右移动",
+  "running-left": "向左移动",
+  waving: "打招呼",
+  jumping: "跳跃",
+  failed: "哭泣/失败",
+  waiting: "歪头/等待",
+  running: "处理中",
+  review: "认真回复"
+};
+
 export type PetRow = {
   state: PetState;
   row: number;
@@ -49,6 +77,25 @@ export type StoredLocalPet = {
   spritesheetDataUrl: string;
 };
 
+export type AnimationStateSettings = {
+  frames?: number;
+  speed?: number;
+  loops?: number;
+};
+
+export type AnimationSettings = {
+  aiChatEnabled: boolean;
+  frameIntervalMs: number;
+  clickAction: ClickAction;
+  clickPoseLoops: number;
+  responseActionLoops: number;
+  minActionMs: number;
+  dragStartDelayMs: number;
+  dragReleaseDelayMs: number;
+  idlePlays: boolean;
+  states: Partial<Record<PetState, AnimationStateSettings>>;
+};
+
 const DEFAULT_ATLAS = {
   cellWidth: 192,
   cellHeight: 208,
@@ -68,6 +115,19 @@ const DEFAULT_ANIMATIONS: PetRow[] = [
   { state: "review", row: 8, frames: 6 }
 ];
 
+export const DEFAULT_ANIMATION_SETTINGS: AnimationSettings = {
+  aiChatEnabled: true,
+  frameIntervalMs: 140,
+  clickAction: "waving",
+  clickPoseLoops: 5,
+  responseActionLoops: 4,
+  minActionMs: 1600,
+  dragStartDelayMs: 180,
+  dragReleaseDelayMs: 80,
+  idlePlays: false,
+  states: {}
+};
+
 export const BUNDLED_PETS: PetDefinition[] = [
   {
     id: "miaomiao",
@@ -84,6 +144,8 @@ export const DEEPSEEK_KEY_STORAGE = "aipet:deepseek-api-key";
 export const DEEPSEEK_MODEL_STORAGE = "aipet:deepseek-model";
 export const DEEPSEEK_BASE_URL_STORAGE = "aipet:deepseek-base-url";
 export const PERSONA_STORAGE = "aipet:pet-persona";
+export const ANIMATION_SETTINGS_STORAGE = "aipet:animation-settings";
+export const PET_SCALE_STORAGE = "aipet:pet-scale";
 
 function hasUsableSpriteData(value: unknown): value is string {
   return typeof value === "string" && /^data:image\/(png|webp);base64,/i.test(value);
@@ -95,6 +157,24 @@ function sanitizeId(value: string) {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function clampNumber(value: unknown, fallback: number, min: number, max: number) {
+  const next = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(next)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, next));
+}
+
+export function isPetState(value: unknown): value is PetState {
+  return typeof value === "string" && PET_STATE_ORDER.includes(value as PetState);
+}
+
+export function isClickAction(value: unknown): value is ClickAction {
+  return value === "random" || isPetState(value);
 }
 
 function readStoredLocalPets(strict = false): StoredLocalPet[] {
@@ -157,6 +237,85 @@ export function normalizePetManifest(input: RawPetManifest): PetManifest {
     },
     animations: Array.isArray(input.animations) && input.animations.length > 0 ? input.animations : DEFAULT_ANIMATIONS
   };
+}
+
+export function normalizeAnimationSettings(input: unknown): AnimationSettings {
+  const source = isObject(input) ? input : {};
+  const rawStates = isObject(source.states) ? source.states : {};
+  const states: Partial<Record<PetState, AnimationStateSettings>> = {};
+
+  for (const animation of DEFAULT_ANIMATIONS) {
+    const rawState = rawStates[animation.state];
+
+    if (!isObject(rawState)) {
+      continue;
+    }
+
+    states[animation.state] = {
+      frames: clampNumber(rawState.frames, animation.frames, 1, DEFAULT_ATLAS.columns),
+      speed: clampNumber(rawState.speed, 1, 0.25, 4),
+      loops: clampNumber(rawState.loops, DEFAULT_ANIMATION_SETTINGS.responseActionLoops, 1, 20)
+    };
+  }
+
+  return {
+    aiChatEnabled:
+      typeof source.aiChatEnabled === "boolean"
+        ? source.aiChatEnabled
+        : DEFAULT_ANIMATION_SETTINGS.aiChatEnabled,
+    frameIntervalMs: clampNumber(
+      source.frameIntervalMs,
+      DEFAULT_ANIMATION_SETTINGS.frameIntervalMs,
+      40,
+      500
+    ),
+    clickAction: isClickAction(source.clickAction)
+      ? source.clickAction
+      : DEFAULT_ANIMATION_SETTINGS.clickAction,
+    clickPoseLoops: clampNumber(
+      source.clickPoseLoops,
+      DEFAULT_ANIMATION_SETTINGS.clickPoseLoops,
+      1,
+      20
+    ),
+    responseActionLoops: clampNumber(
+      source.responseActionLoops,
+      DEFAULT_ANIMATION_SETTINGS.responseActionLoops,
+      1,
+      20
+    ),
+    minActionMs: clampNumber(source.minActionMs, DEFAULT_ANIMATION_SETTINGS.minActionMs, 0, 10000),
+    dragStartDelayMs: clampNumber(
+      source.dragStartDelayMs,
+      DEFAULT_ANIMATION_SETTINGS.dragStartDelayMs,
+      0,
+      1000
+    ),
+    dragReleaseDelayMs: clampNumber(
+      source.dragReleaseDelayMs,
+      DEFAULT_ANIMATION_SETTINGS.dragReleaseDelayMs,
+      0,
+      1000
+    ),
+    idlePlays: typeof source.idlePlays === "boolean" ? source.idlePlays : DEFAULT_ANIMATION_SETTINGS.idlePlays,
+    states
+  };
+}
+
+export function loadAnimationSettings(): AnimationSettings {
+  try {
+    const raw = localStorage.getItem(ANIMATION_SETTINGS_STORAGE);
+    return normalizeAnimationSettings(raw ? JSON.parse(raw) : {});
+  } catch (error) {
+    console.warn("动作设置读取失败。", error);
+    return DEFAULT_ANIMATION_SETTINGS;
+  }
+}
+
+export function saveAnimationSettings(settings: AnimationSettings) {
+  const normalized = normalizeAnimationSettings(settings);
+  localStorage.setItem(ANIMATION_SETTINGS_STORAGE, JSON.stringify(normalized));
+  return normalized;
 }
 
 export function loadLocalPets(): PetDefinition[] {
